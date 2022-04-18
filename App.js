@@ -8,7 +8,12 @@
 import 'react-native-gesture-handler';
 import React, {Component} from 'react';
 import {StyleSheet, View, Text, Image, Button, Linking} from 'react-native';
-import {Link, NavigationContainer} from '@react-navigation/native';
+import {
+  Link,
+  NavigationContainer,
+  DrawerActions,
+  useNavigation,
+} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {
@@ -33,6 +38,7 @@ import Icon from 'react-native-vector-icons/dist/Ionicons';
 import Ionicons from 'react-native-vector-icons/dist/Ionicons';
 import StackHomeScreen from './src/home';
 import StackUserScreen from './src/user';
+import {TouchableOpacity} from 'react-native-gesture-handler';
 
 const Stack = createNativeStackNavigator(); // 이 함수를 호출해서 Stack에 저장해서 Stack에서 내부 함수를 호출해서 사용하는 방식으로 사용
 const Drawer = createDrawerNavigator(); // DrawerNavigator 사용을 위해서 함수를 호출
@@ -40,10 +46,12 @@ const Tab = createBottomTabNavigator(); // Tab navigation을 사용할 함수 �
 
 /*
   Stack Naavigator
-  -Tab Navigator
-    -Tab Screen D
-    -Tab Screen E
-    -Tab Screen F
+  -Drawer Navigator
+    -Drawer Screen D
+    -Drawer Screen E
+    -Tab Navigator
+      -Tab Screen F
+      -Tab Screen G
   - Stack Screen B
   - Stack Screen C
 */
@@ -66,7 +74,41 @@ const MainScreen = () => {
       <Tab.Screen
         name="Home"
         component={TabHomeScreen}
+        options={{headerShown: false}} // headerbar 화면 표시를 선택ㄱ
+      />
+      <Tab.Screen
+        name="User"
+        component={TabUserScreen}
         options={{headerShown: false}}
+      />
+      <Tab.Screen
+        name="Message"
+        component={TabMessageScreen}
+        options={{headerShown: false}}
+      />
+    </Tab.Navigator>
+  );
+};
+
+const TabComponent = () => {
+  return (
+    <Tab.Navigator
+      initialRouteName="Home"
+      screenOptions={({route}) => ({
+        tabBarActiveBackgroundColor: 'skyblue',
+        tabBarActiveTintColor: 'blue',
+        tabBarInactiveTintColor: '#fff',
+        tabBarLabelPosition: 'below-icon', // 라벨의 옆에 나오게 설정
+        tabBarLabel: route.name, // route를 통해 name값을 받아서 그 네임을 적용
+        tabBarIcon: ({focused}) => TabBarIcon(focused, route.name), // tabarIcon 함수를 통해 포커스된 대상에 함수 적용
+        tabBarStyle: {
+          backgroundColor: '#c6cbef',
+        },
+      })}>
+      <Tab.Screen
+        name="Home"
+        component={TabHomeScreen}
+        options={{headerShown: false}} // headerbar 화면 표시를 선택ㄱ
       />
       <Tab.Screen
         name="User"
@@ -130,6 +172,46 @@ CustomDrawerContent = props => {
   );
 }; // 아이콘이 들어간 사이드 드로워에 사용
 
+const DrawerComponent = () => {
+  return (
+    <Drawer.Navigator
+      initialRouteName="Home"
+      drawerContentOptions={{
+        activeTintColor: 'red',
+        activeBackgroundColor: 'skyblue',
+      }} // 안되는데 이유를 모름 ㄷ;
+      screenOptions={{
+        drawerType: 'front', // 화면은 고정하고 옆에서 메뉴가 나오는형태 slide는 drawer가 나온만큼 화면이 옆으로 밀려남
+        drawerPosition: 'right', // drawer의 나오는 방향을 지정
+        drawerStyle: {
+          backgroundColor: '#CEE3F6',
+          width: 200,
+        },
+      }}
+      drawerContent={props => <SideDrawer {...props} />}>
+      <Drawer.Screen
+        name="Route"
+        component={TabComponent}
+        options={{headerShown: false}}
+      />
+    </Drawer.Navigator>
+  );
+};
+
+const HeaderRight = () => {
+  const navigation = useNavigation();
+  return (
+    <View style={{flexDirection: 'row', paddingRight: 15}}>
+      <TouchableOpacity
+        onPress={() => {
+          navigation.dispatch(DrawerActions.openDrawer());
+        }}>
+        <Text>Open</Text>
+      </TouchableOpacity>
+    </View>
+  );
+};
+
 class App extends Component {
   // logoTitle = () => {
   //   return (
@@ -144,11 +226,26 @@ class App extends Component {
     return (
       <NavigationContainer>
         <Stack.Navigator>
-          <Stack.Screen name="Main" component={MainScreen} />
+          <Stack.Screen
+            name="Main"
+            component={DrawerComponent}
+            options={{
+              headerRight: ({}) => <HeaderRight />,
+            }}
+          />
           <Stack.Screen name="Home_Stack" component={StackHomeScreen} />
           <Stack.Screen name="User_Stack" component={StackUserScreen} />
         </Stack.Navigator>
       </NavigationContainer>
+
+      // 멀티 Navigation 사용 연습
+      // <NavigationContainer>
+      //   <Stack.Navigator>
+      //     <Stack.Screen name="Main" component={MainScreen} />
+      //     <Stack.Screen name="Home_Stack" component={StackHomeScreen} />
+      //     <Stack.Screen name="User_Stack" component={StackUserScreen} />
+      //   </Stack.Navigator>
+      // </NavigationContainer>
 
       // Tab Navigator 연습자료
       // <NavigationContainer>
